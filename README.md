@@ -1,6 +1,4 @@
-# 
-
-# iclr2024-8507-Identifying Latent State Transition Processes for Individualized Reinforcement Learning
+# Identifying Latent State Transition Processes for Individualized Reinforcement Learning
 ## Overview
 ## Experiments
 ## Requirements
