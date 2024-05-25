@@ -8,12 +8,11 @@ import torch.nn as nn
 from scipy import stats
 import torch.optim as optim
 import torch.nn.functional as F
-
 from collections import defaultdict
 from torch.utils.data import DataLoader, TensorDataset, random_split
 
 
-# IVAE
+# Implementation
 class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, latent_dim):
         super(VectorQuantizer, self).__init__()
@@ -34,6 +33,7 @@ class VectorQuantizer(nn.Module):
         z_q_sg = z_e + (z_q - z_e).detach()
         return z_q, z_q_sg
 
+
 class EncoderConv1(nn.Module):
     def __init__(self, input_dim, hidden_dim, latent_dim, num_layers):
         super(EncoderConv1, self).__init__()
@@ -52,6 +52,7 @@ class EncoderConv1(nn.Module):
         x = self.latent_layer(x)
         return x
 
+
 class DecoderMLP(nn.Module):
     def __init__(self, input_dim, latent_dim, condition_dim, hidden_dim, num_layers):
         super(DecoderMLP, self).__init__()
@@ -68,6 +69,7 @@ class DecoderMLP(nn.Module):
             x = F.relu(layer(x))
         return self.output_layer(x)
 
+
 class NoiseEstimator(nn.Module):
     def __init__(self, latent_dim, input_dim, hidden_dim):
         super(NoiseEstimator, self).__init__()
@@ -82,6 +84,7 @@ class NoiseEstimator(nn.Module):
     def forward(self, x):
         return self.model(x)
 
+
 class ConditionalVQVAE(nn.Module):
     def __init__(self, input_dim, condition_dim, hidden_dim, latent_dim, num_embeddings, num_layers):
         super(ConditionalVQVAE, self).__init__()
@@ -93,6 +96,7 @@ class ConditionalVQVAE(nn.Module):
         z_e = self.encoder(x)
         z_q = self.vq.straight_through(z_e)
         return self.decoder(z_q, c)
+
 
 def convert_to_float_or_list(item):
     try:
@@ -110,17 +114,14 @@ input_dim = 3
 condition_dim = 4
 latent_dim = 1
 num_embeddings = 30
-
 np.random.seed(42)
 torch.manual_seed(42)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 data_type = 'pendulum'
 ckp_path = "./checkpoint/"+ data_type + ".pth"
 noise_path = "./checkpoint/"+ data_type + "_noise.pth"
 csv_file_relative_path = os.path.join("..", "control/dataset", data_type + ".csv")
 pickle_file_pcc_path = os.path.join("..", "control/dataset", data_type + "_list.pkl")
-
 current_directory = os.getcwd()
 csv_file_path = os.path.abspath(os.path.join(current_directory, csv_file_relative_path))
 
@@ -176,7 +177,6 @@ num_layers = 2
 hidden_dim = 48
 num_epochs = 1000
 learning_rate = 1e-4
-
 model = ConditionalVQVAE(input_dim, condition_dim, hidden_dim, latent_dim, num_embeddings, num_layers).to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 reconstruction_loss = nn.MSELoss()
