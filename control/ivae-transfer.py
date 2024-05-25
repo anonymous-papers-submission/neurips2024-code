@@ -10,14 +10,13 @@ import torch.nn.functional as F
 from collections import deque, defaultdict
 
 
-problem = "Pendulum-v1"
-env = gym.make(problem)
+env = gym.make("Pendulum-v1")
 num_states = env.observation_space.shape[0]
 num_actions = env.action_space.shape[0]
 upper_bound = env.action_space.high[0]
 lower_bound = env.action_space.low[0]
 
-# IVAE
+# Implementation
 class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, latent_dim):
         super(VectorQuantizer, self).__init__()
@@ -38,6 +37,7 @@ class VectorQuantizer(nn.Module):
         z_q_sg = z_e + (z_q - z_e).detach()
         return z_q, z_q_sg
 
+
 class EncoderConv1(nn.Module):
     def __init__(self, input_dim, hidden_dim, latent_dim, num_layers):
         super(EncoderConv1, self).__init__()
@@ -56,6 +56,7 @@ class EncoderConv1(nn.Module):
         x = self.latent_layer(x)
         return x
 
+
 class DecoderMLP(nn.Module):
     def __init__(self, input_dim, latent_dim, condition_dim, hidden_dim, num_layers):
         super(DecoderMLP, self).__init__()
@@ -72,6 +73,7 @@ class DecoderMLP(nn.Module):
             x = F.relu(layer(x))
         return self.output_layer(x)
 
+
 class NoiseEstimator(nn.Module):
     def __init__(self, latent_dim, input_dim, hidden_dim):
         super(NoiseEstimator, self).__init__()
@@ -85,6 +87,7 @@ class NoiseEstimator(nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
 
 class ConditionalVQVAE(nn.Module):
     def __init__(self, input_dim, condition_dim, hidden_dim, latent_dim, num_embeddings, num_layers):
@@ -120,11 +123,11 @@ pkl_path = os.path.join("..", "control/dataset", "data_offline_multiple.pkl")
 save_path = os.path.join("..", "control/dataset", "data_ivae_multiple.pkl")
 ckpmodel = torch.load(ckp_path)
 ckpnoise = torch.load(noise_path)
-
 model = ConditionalVQVAE(input_dim, condition_dim, hidden_dim, latent_dim, num_embeddings, num_layers).to(device)
 model.load_state_dict(ckpmodel['model_state_dict'])
 flow_model = NoiseEstimator(latent_dim, input_dim, hidden_dim).to(device)
 flow_model.load_state_dict(ckpnoise['model_state_dict'])
+
 
 def InvidualizedModel(states, labels):
     model.eval()
@@ -257,6 +260,7 @@ class Critic(nn.Module):
         concat = torch.cat([state_out, action_out], 1)
         return self.concat_layer(concat)
 
+
 def policy(state, latent, noise_object, actor):
     latent = torch.tensor(latent, dtype=torch.float32)
     with torch.no_grad():
@@ -264,6 +268,7 @@ def policy(state, latent, noise_object, actor):
     noise = noise_object()
     legal_action = np.clip(action.numpy() + noise, lower_bound, upper_bound)
     return [np.squeeze(legal_action)]
+
 
 env = gym.make("Pendulum-v1",g=10.0)
 state_dim = env.observation_space.shape[0]
