@@ -8,6 +8,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset, random_split
 
+
 def generate_mapping(original_list):
     mapping_dict = {}
     for index, item in enumerate(original_list):
@@ -50,6 +51,7 @@ train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 train_loader = DataLoader(train_dataset, batch_size=bs, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=bs*2)
 
+
 class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, latent_dim):
         super(VectorQuantizer, self).__init__()
@@ -70,6 +72,7 @@ class VectorQuantizer(nn.Module):
         z_q_sg = z_e + (z_q - z_e).detach()
         return z_q, z_q_sg
 
+
 class Encoder(nn.Module):
     def __init__(self, latent_dim=100):
         super(Encoder, self).__init__()
@@ -84,6 +87,7 @@ class Encoder(nn.Module):
 
         return self.fc(h_n)
 
+
 class NoiseEstimator(nn.Module):
     def __init__(self, latent_dim, input_dim, hidden_dim):
         super(NoiseEstimator, self).__init__()
@@ -94,6 +98,7 @@ class NoiseEstimator(nn.Module):
         x = nn.functional.relu(self.fc1(sigma))
         noise = self.fc3(x)
         return noise
+
 
 class Decoder(nn.Module):
     def __init__(self, latent_dim=100, length=50):
@@ -111,6 +116,7 @@ class Decoder(nn.Module):
         h2 = F.relu(self.fc2(h1))
 
         return torch.sigmoid(self.fc3(h2)).view(-1, 1, self.length, 768)
+
 
 class CVQVAE(nn.Module):
     def __init__(self, latent_dim=100, num_embeddings=50, length=50):
