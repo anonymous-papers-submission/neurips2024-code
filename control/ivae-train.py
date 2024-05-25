@@ -9,6 +9,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from collections import defaultdict
 
+
 problem = "Pendulum-v1"
 env = gym.make(problem)
 num_states = env.observation_space.shape[0]
@@ -16,7 +17,8 @@ num_actions = env.action_space.shape[0]
 upper_bound = env.action_space.high[0]
 lower_bound = env.action_space.low[0]
 
-# IVAE
+
+# Implementation
 class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, latent_dim):
         super(VectorQuantizer, self).__init__()
@@ -37,6 +39,7 @@ class VectorQuantizer(nn.Module):
         z_q_sg = z_e + (z_q - z_e).detach()
         return z_q, z_q_sg
 
+
 class EncoderConv1(nn.Module):
     def __init__(self, input_dim, hidden_dim, latent_dim, num_layers):
         super(EncoderConv1, self).__init__()
@@ -55,6 +58,7 @@ class EncoderConv1(nn.Module):
         x = self.latent_layer(x)
         return x
 
+
 class DecoderMLP(nn.Module):
     def __init__(self, input_dim, latent_dim, condition_dim, hidden_dim, num_layers):
         super(DecoderMLP, self).__init__()
@@ -71,6 +75,7 @@ class DecoderMLP(nn.Module):
             x = F.relu(layer(x))
         return self.output_layer(x)
 
+
 class NoiseEstimator(nn.Module):
     def __init__(self, latent_dim, input_dim, hidden_dim):
         super(NoiseEstimator, self).__init__()
@@ -84,6 +89,7 @@ class NoiseEstimator(nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
 
 class ConditionalVQVAE(nn.Module):
     def __init__(self, input_dim, condition_dim, hidden_dim, latent_dim, num_embeddings, num_layers):
@@ -120,11 +126,11 @@ pkl_path = os.path.join("..", "control/dataset", "data_offline_multiple.pkl")
 save_path = os.path.join("..", "control/dataset", "data_ivae_multiple.pkl")
 ckpmodel = torch.load(ckp_path)
 ckpnoise = torch.load(noise_path)
-
 model = ConditionalVQVAE(input_dim, condition_dim, hidden_dim, latent_dim, num_embeddings, num_layers).to(device)
 model.load_state_dict(ckpmodel['model_state_dict'])
 flow_model = NoiseEstimator(latent_dim, input_dim, hidden_dim).to(device)
 flow_model.load_state_dict(ckpnoise['model_state_dict'])
+
 
 def InvidualizedModel(states, labels):
     model.eval()
@@ -135,6 +141,7 @@ def InvidualizedModel(states, labels):
         noise = flow_model(z_q_sg)
         output = model.decoder(z_q_sg, labels, noise)
     return z_q.cpu().squeeze().numpy(), output
+
 
 class OUActionNoise:
     def __init__(self, mean, std_deviation, theta=0.15, dt=1e-2, x_initial=None):
@@ -265,7 +272,7 @@ def policy(state, noise_object, actor):
     return [np.squeeze(legal_action)]
 
 
-env = gym.make("Pendulum-v1",g=10.0)
+env = gym.make("Pendulum-v1", g=10.0)
 state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 
@@ -287,7 +294,6 @@ states = []
 for key, value in dcon:
     states.append(tuple(groups[key]))
 states = torch.tensor(states).to(device).float() 
-
 state = torch.tensor(np.array([np.fromstring(row[2][1:-1], sep=' ') for row in extracted_data])).to(device).float()
 action = torch.tensor([row[3] for row in extracted_data]).to(device).float()
 labels = torch.cat([state, action], dim=1).to(device).float()
@@ -327,7 +333,6 @@ training_episodes = 100
 tau = 0.005
 gamma = 0.99
 buffer = Buffer(50000, 64)
-
 np.random.shuffle(data)
 for i in trange(len(data)):
     batch = list(data)[i:i + 1]
