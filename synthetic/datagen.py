@@ -15,8 +15,10 @@ num_users = 100
 random_seed = 42
 rng = np.random.default_rng(random_seed)
 
+
 def Sigmoid(x):
     return 1 / (1 + np.exp(-x))
+
 
 def generate_stable_parameters():
     while True:
@@ -29,7 +31,8 @@ def generate_stable_parameters():
     c = np.random.choice([-1, 1]) * np.random.uniform(0, abs(1 - abs(d)))
     
     return a, b, c, d
-    
+
+
 class tsSingleMLP(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(tsSingleMLP, self).__init__()
@@ -40,7 +43,8 @@ class tsSingleMLP(nn.Module):
         x = torch.tanh(self.fc1(x))
         x = self.fc2(x)
         return x
-    
+
+
 class tsMultiMLP(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(tsMultiMLP, self).__init__()
@@ -51,6 +55,7 @@ class tsMultiMLP(nn.Module):
         x = torch.tanh(self.fc1(x))
         x = self.fc2(x)
         return x
+
 
 class noiseMLP(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -68,7 +73,8 @@ class noiseMLP(nn.Module):
         x = self.sigmoid(self.fc1(x))
         x = self.sigmoid(self.fc2(x))
         return x
-    
+
+
 def generateUniformMat(Ncomp, condT):
     A = np.random.uniform(0, 2, (Ncomp, Ncomp)) - 1
     for i in range(Ncomp):
@@ -80,6 +86,7 @@ def generateUniformMat(Ncomp, condT):
             A[:, i] /= np.sqrt((A[:, i] ** 2).sum())
 
     return A
+
 
 def causalMask(n_nodes=5, seed=42, sparsity=0.6):
     np.random.seed(seed)
