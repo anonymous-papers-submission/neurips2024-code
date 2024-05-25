@@ -7,9 +7,7 @@ import numpy as np
 from collections import namedtuple, deque
 
 
-problem = "Pendulum-v1"
-env = gym.make(problem)
-
+env = gym.make("Pendulum-v1")
 num_states = env.observation_space.shape[0]
 print("Size of State Space ->  {}".format(num_states))
 num_actions = env.action_space.shape[0]
@@ -17,7 +15,6 @@ print("Size of Action Space ->  {}".format(num_actions))
 
 upper_bound = env.action_space.high[0]
 lower_bound = env.action_space.low[0]
-
 print("Max Value of Action ->  {}".format(upper_bound))
 print("Min Value of Action ->  {}".format(lower_bound))
 
@@ -29,8 +26,8 @@ num_envs = 20
 num_episodes = 100
 MEMORY_SIZE = num_envs*num_episodes
 
-dist = [0.1, 0.2, 0.1, 0.4, 0.2]    # cardinality = 5
-var_samples = random.choices([5.0, 10.0, 15.0, 20.0, 25.0], dist, k=num_envs)
+dist = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]    # cardinality = 10
+var_samples = random.choices([3, 4, 5, 6, 7, 8, 9, 10, 11, 12], dist, k=num_envs)
 L = [np.array((var)) for var in zip(var_samples)]
 
 Transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'done'))
