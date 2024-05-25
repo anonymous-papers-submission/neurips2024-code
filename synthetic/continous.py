@@ -33,6 +33,7 @@ class VectorQuantizer(nn.Module):
         z_q_sg = z_e + (z_q - z_e).detach()
         return z_q, z_q_sg
 
+
 class EncoderConv1(nn.Module):
     def __init__(self, input_dim, hidden_dim, latent_dim, num_layers):
         super(EncoderConv1, self).__init__()
@@ -51,6 +52,7 @@ class EncoderConv1(nn.Module):
         x = self.latent_layer(x)
         return x
 
+
 class DecoderMLP(nn.Module):
     def __init__(self, input_dim, latent_dim, condition_dim, hidden_dim, num_layers):
         super(DecoderMLP, self).__init__()
@@ -67,6 +69,7 @@ class DecoderMLP(nn.Module):
             x = F.relu(layer(x))
         return self.output_layer(x)
 
+
 class NoiseEstimator(nn.Module):
     def __init__(self, latent_dim, input_dim, hidden_dim):
         super(NoiseEstimator, self).__init__()
@@ -77,6 +80,7 @@ class NoiseEstimator(nn.Module):
         x = nn.functional.relu(self.fc1(sigma))
         noise = self.fc2(x)
         return noise
+
 
 class ConditionalVQVAE(nn.Module):
     def __init__(self, input_dim, condition_dim, hidden_dim, latent_dim, num_embeddings, num_layers):
@@ -173,6 +177,7 @@ reconstruction_loss = nn.MSELoss()
 flow_model = NoiseEstimator(latent_dim, input_dim, hidden_dim).to(device)
 optimizer_spline = optim.Adam(flow_model.parameters(), lr=learning_rate)
 
+
 def TrainCCA(estimateds, latents, train_or_not):
     estimateds = torch.cat(estimateds, dim=0).cpu().detach().numpy()
     latents = np.concatenate(latents, axis=0)
@@ -185,6 +190,7 @@ def TrainCCA(estimateds, latents, train_or_not):
         x_train_c, y_train_c = cca.transform(latents, estimateds)
         correlations = np.corrcoef(x_train_c.T, y_train_c.T)[:x_train_c.shape[1], x_train_c.shape[1]:]
         print("Canonical correlations on training set:", np.diag(correlations))
+
 
 def TestCCA(estimateds, latents):
     print(f"Rank of X on the testing: {np.linalg.matrix_rank(latents)},", f"Rank of Y on the testing: {np.linalg.matrix_rank(estimateds)}")
